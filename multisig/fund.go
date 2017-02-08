@@ -12,8 +12,8 @@ import (
 )
 
 //OutputFund formats and prints relevant outputs to the user.
-func OutputFund(flagPrivateKey string, flagInputTx string, flagAmount int, flagP2SHDestination string) {
-	finalTransactionHex := generateFund(flagPrivateKey, flagInputTx, flagAmount, flagP2SHDestination)
+func OutputFund(flagPrivateKey string, vout uint32, flagInputTx string, flagAmount int, flagP2SHDestination string) {
+	finalTransactionHex := generateFund(flagPrivateKey, vout, flagInputTx, flagAmount, flagP2SHDestination)
 
 	//Output our final transaction
 	fmt.Printf(`
@@ -31,7 +31,7 @@ Broadcast this transaction to fund your P2SH address.
 // Takes flagPrivateKey (private key of input Bitcoins to fund with), flagInputTx (input transaction hash of
 // Bitcoins to fund with), flagAmount (amount in Satoshis to send, with balance left over from input being used
 // as transaction fee) and flagP2SHDestination (destination P2SH multisig address which is being funded) as arguments.
-func generateFund(flagPrivateKey string, flagInputTx string, flagAmount int, flagP2SHDestination string) string {
+func generateFund(flagPrivateKey string, vout uint32, flagInputTx string, flagAmount int, flagP2SHDestination string) string {
 	//Get private key as decoded raw bytes
 	privateKey := base58check.Decode(flagPrivateKey)
 	//In order to construct the raw transaction we need the input transaction hash,
@@ -56,7 +56,7 @@ func generateFund(flagPrivateKey string, flagInputTx string, flagAmount int, fla
 		log.Fatal(err)
 	}
 	//Create unsigned raw transaction
-	rawTransaction, err := btcutils.NewRawTransaction(flagInputTx, flagAmount, tempScriptSig, scriptPubKey)
+	rawTransaction, err := btcutils.NewRawTransaction(flagInputTx, vout, flagAmount, tempScriptSig, scriptPubKey)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -71,7 +71,7 @@ func generateFund(flagPrivateKey string, flagInputTx string, flagAmount int, fla
 	rawTransactionBuffer.Write(hashCodeType)
 	rawTransactionWithHashCodeType := rawTransactionBuffer.Bytes()
 	//Sign the raw transaction, and output it to the console.
-	finalTransaction, err := signP2PKHTransaction(rawTransactionWithHashCodeType, privateKey, scriptPubKey, flagInputTx, flagAmount)
+	finalTransaction, err := signP2PKHTransaction(rawTransactionWithHashCodeType, vout, privateKey, scriptPubKey, flagInputTx, flagAmount)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -82,7 +82,7 @@ func generateFund(flagPrivateKey string, flagInputTx string, flagAmount int, fla
 
 // signP2PKHTransaction signs a raw P2PKH transaction, given a private key and the scriptPubKey, inputTx and amount
 // to construct the final transaction.
-func signP2PKHTransaction(rawTransaction []byte, privateKey []byte, scriptPubKey []byte, inputTx string, amount int) ([]byte, error) {
+func signP2PKHTransaction(rawTransaction []byte, vout uint32, privateKey []byte, scriptPubKey []byte, inputTx string, amount int) ([]byte, error) {
 	publicKey, err := btcutils.NewPublicKey(privateKey)
 	if err != nil {
 		return nil, err
@@ -106,7 +106,7 @@ func signP2PKHTransaction(rawTransaction []byte, privateKey []byte, scriptPubKey
 	buffer.Write(publicKey)
 	scriptSig := buffer.Bytes()
 	//Finally create transaction with actual scriptSig
-	signedRawTransaction, err := btcutils.NewRawTransaction(inputTx, amount, scriptSig, scriptPubKey)
+	signedRawTransaction, err := btcutils.NewRawTransaction(inputTx, vout, amount, scriptSig, scriptPubKey)
 	if err != nil {
 		return nil, err
 	}

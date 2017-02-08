@@ -15,8 +15,8 @@ import (
 )
 
 //OutputSpend formats and prints relevant outputs to the user.
-func OutputSpend(flagPrivateKeys string, flagDestination string, flagRedeemScript string, flagInputTx string, flagAmount int) {
-	finalTransactionHex := generateSpend(flagPrivateKeys, flagDestination, flagRedeemScript, flagInputTx, flagAmount)
+func OutputSpend(flagPrivateKeys string, vout uint32, flagDestination string, flagRedeemScript string, flagInputTx string, flagAmount int) {
+	finalTransactionHex := generateSpend(flagPrivateKeys, vout, flagDestination, flagRedeemScript, flagInputTx, flagAmount)
 	//Output final transaction
 	//Output our final transaction
 	fmt.Printf(`
@@ -34,7 +34,7 @@ Broadcast this transaction to spend your multisig P2SH funds.
 // Takes flagPrivateKeys (comma separated list of M private keys), flagDestination (destination address of spent funds),
 // flagRedeemScript (redeemScript that matches P2SH script), flagInputTx (input transaction hash of P2SH input to spend)
 // and flagAmount (amount in Satoshis to send, with balance left over from input being used as transaction fee) as arguments.
-func generateSpend(flagPrivateKeys string, flagDestination string, flagRedeemScript string, flagInputTx string, flagAmount int) string {
+func generateSpend(flagPrivateKeys string, vout uint32, flagDestination string, flagRedeemScript string, flagInputTx string, flagAmount int) string {
 	//First we create the raw transaction.
 	//In order to construct the raw transaction we need the input transaction hash,
 	//the destination address, the number of satoshis to send, and the scriptSig
@@ -67,7 +67,7 @@ func generateSpend(flagPrivateKeys string, flagDestination string, flagRedeemScr
 	}
 	//Create unsigned raw transaction
 	//scriptSig in unsigned transaction is serialized redeemScript of input P2SH transaction.
-	rawTransaction, err := btcutils.NewRawTransaction(flagInputTx, flagAmount, redeemScript, scriptPubKey)
+	rawTransaction, err := btcutils.NewRawTransaction(flagInputTx, vout, flagAmount, redeemScript, scriptPubKey)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -82,7 +82,7 @@ func generateSpend(flagPrivateKeys string, flagDestination string, flagRedeemScr
 	rawTransactionBuffer.Write(hashCodeType)
 	rawTransactionWithHashCodeType := rawTransactionBuffer.Bytes()
 	//Sign transaction
-	finalTransaction, err := signMultisigTransaction(rawTransactionWithHashCodeType, privateKeys, scriptPubKey, redeemScript, flagInputTx, flagAmount)
+	finalTransaction, err := signMultisigTransaction(rawTransactionWithHashCodeType, vout, privateKeys, scriptPubKey, redeemScript, flagInputTx, flagAmount)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -93,7 +93,7 @@ func generateSpend(flagPrivateKeys string, flagDestination string, flagRedeemScr
 
 // signMultisigTransaction signs a raw P2PKH transaction, given slice of private keys and the scriptPubKey, inputTx,
 // redeemScript and amount to construct the final transaction.
-func signMultisigTransaction(rawTransaction []byte, orderedPrivateKeys [][]byte, scriptPubKey []byte, redeemScript []byte, inputTx string, amount int) ([]byte, error) {
+func signMultisigTransaction(rawTransaction []byte, vout uint32, orderedPrivateKeys [][]byte, scriptPubKey []byte, redeemScript []byte, inputTx string, amount int) ([]byte, error) {
 	//Hash type SIGHASH_ALL
 	hashCodeType, err := hex.DecodeString("01")
 	if err != nil {
@@ -131,7 +131,7 @@ func signMultisigTransaction(rawTransaction []byte, orderedPrivateKeys [][]byte,
 	buffer.Write(redeemScript)                  //redeemScript
 	scriptSig := buffer.Bytes()
 	//Finally create transaction with actual scriptSig
-	signedRawTransaction, err := btcutils.NewRawTransaction(inputTx, amount, scriptSig, scriptPubKey)
+	signedRawTransaction, err := btcutils.NewRawTransaction(inputTx, vout, amount, scriptSig, scriptPubKey)
 	if err != nil {
 		return nil, err
 	}

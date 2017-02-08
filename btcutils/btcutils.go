@@ -193,7 +193,7 @@ func NewP2PKHScriptPubKey(publicKeyHash []byte) ([]byte, error) {
 }
 
 // NewRawTransaction creates a Bitcoin transaction given inputs, output satoshi amount, scriptSig and scriptPubKey
-func NewRawTransaction(inputTxHash string, satoshis int, scriptSig []byte, scriptPubKey []byte) ([]byte, error) {
+func NewRawTransaction(inputTxHash string, vout uint32, satoshis int, scriptSig []byte, scriptPubKey []byte) ([]byte, error) {
 	//Version field
 	version, err := hex.DecodeString("01000000")
 	if err != nil {
@@ -215,10 +215,12 @@ func NewRawTransaction(inputTxHash string, satoshis int, scriptSig []byte, scrip
 		inputTxBytesReversed[i] = inputTxBytes[len(inputTxBytes)-i-1]
 	}
 	//Ouput index of input transaction
-	outputIndex, err := hex.DecodeString("00000000")
-	if err != nil {
-		return nil, err
-	}
+	outputIndex := make([]byte, 4)
+	binary.LittleEndian.PutUint32(outputIndex, vout)
+	//outputIndex, err := hex.DecodeString("00000000")
+	//if err != nil {
+	//	return nil, err
+	//}
 	//scriptSig length. To allow scriptSig > 255 bytes, we use variable length integer syntax from protocol spec
 	var scriptSigLengthBytes []byte
 	if len(scriptSig) < 253 {
