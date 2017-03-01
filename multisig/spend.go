@@ -16,7 +16,7 @@ import (
 
 //OutputSpend formats and prints relevant outputs to the user.
 func OutputSpend(flagPrivateKeys string, vout uint32, flagDestination string, flagRedeemScript string, flagInputTx string, flagAmount int) {
-	finalTransactionHex := generateSpend(flagPrivateKeys, vout, flagDestination, flagRedeemScript, flagInputTx, flagAmount)
+	finalTransactionHex := GenerateSpend(flagPrivateKeys, vout, flagDestination, flagRedeemScript, flagInputTx, flagAmount)
 	//Output final transaction
 	//Output our final transaction
 	fmt.Printf(`
@@ -34,7 +34,7 @@ Broadcast this transaction to spend your multisig P2SH funds.
 // Takes flagPrivateKeys (comma separated list of M private keys), flagDestination (destination address of spent funds),
 // flagRedeemScript (redeemScript that matches P2SH script), flagInputTx (input transaction hash of P2SH input to spend)
 // and flagAmount (amount in Satoshis to send, with balance left over from input being used as transaction fee) as arguments.
-func generateSpend(flagPrivateKeys string, vout uint32, flagDestination string, flagRedeemScript string, flagInputTx string, flagAmount int) string {
+func GenerateSpend(flagPrivateKeys string, vout uint32, flagDestination string, flagRedeemScript string, flagInputTx string, flagAmount int) string {
 	//First we create the raw transaction.
 	//In order to construct the raw transaction we need the input transaction hash,
 	//the destination address, the number of satoshis to send, and the scriptSig

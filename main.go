@@ -27,7 +27,7 @@ var (
 	cmdFundInputTx     = cmdFund.Flag("input-tx", "Input transaction hash of bitcoin to send.").Required().String()
 	cmdFundAmount      = cmdFund.Flag("amount", "Amount of bitcoin to send in satoshi (100,000,000 satoshi = 1 bitcoin).").Required().Int()
 	cmdFundDestination = cmdFund.Flag("destination", "Destination address. For P2SH, this should start with '3'.").Required().String()
-	cmdFundVout        = cmdFund.Flag("vout", "Index of output").Required().Int64()
+	cmdFundVout        = cmdFund.Flag("vout", "Index of output").Default("0").Int64()
 	//spend subcommand
 	cmdSpend             = app.Command("spend", "Spend multisig balance by sending to a standard Bitcoin address.")
 	cmdSpendPrivateKeys  = cmdSpend.Flag("private-keys", "Comma separated list of private keys to sign with. Whitespace is stripped and quotes may be placed around keys. Eg. key1,key2,\"key3\"").PlaceHolder("PRIVATE-KEYS(Comma separated)").Required().String()
@@ -35,7 +35,7 @@ var (
 	cmdSpendRedeemScript = cmdSpend.Flag("redeemScript", "Hex representation of redeem script that matches redeem script in P2SH input transaction.").Required().String()
 	cmdSpendInputTx      = cmdSpend.Flag("input-tx", "Input transaction hash of bitcoin to send.").Required().String()
 	cmdSpendAmount       = cmdSpend.Flag("amount", "Amount of bitcoin to send in satoshi (100,000,000 satoshi = 1 bitcoin).").Required().Int()
-	cmdSpendVout         = cmdSpend.Flag("vout", "Index of output").Required().Int64()
+	cmdSpendVout         = cmdSpend.Flag("vout", "Index of output").Default("0").Int64()
 )
 
 func main() {
