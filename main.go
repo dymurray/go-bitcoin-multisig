@@ -36,6 +36,10 @@ var (
 	cmdSpendInputTx      = cmdSpend.Flag("input-tx", "Input transaction hash of bitcoin to send.").Required().String()
 	cmdSpendAmount       = cmdSpend.Flag("amount", "Amount of bitcoin to send in satoshi (100,000,000 satoshi = 1 bitcoin).").Required().Int()
 	cmdSpendVout         = cmdSpend.Flag("vout", "Index of output").Default("0").Int64()
+	//addsig command
+	cmdAddsig             = app.Command("addsig", "Add signature to transaction.")
+	cmdAddsigPrivateKeys  = cmdAddsig.Flag("private-keys", "Comma separated list of private keys to sign with. Whitespace is stripped and quotes may be placed around keys. Eg. key1,key2,\"key3\"").PlaceHolder("PRIVATE-KEYS(Comma separated)").Required().String()
+	cmdAddsigTrans        = cmdAddsig.Flag("trans", "The raw transaction to add signature to").String()
 )
 
 func main() {
@@ -56,5 +60,8 @@ func main() {
 	//address -- Spend a multisig P2SH address
 	case cmdSpend.FullCommand():
 		multisig.OutputSpend(*cmdSpendPrivateKeys, uint32(*cmdSpendVout), *cmdSpendDestination, *cmdSpendRedeemScript, *cmdSpendInputTx, *cmdSpendAmount)
+
+	case cmdAddsig.FullCommand():
+		multisig.OutputAddsig(*cmdAddsigPrivateKeys, *cmdAddsigTrans)
 	}
 }
